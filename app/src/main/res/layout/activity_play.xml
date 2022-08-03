@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center"
+    android:orientation="vertical"
+    tools:context=".PlayActivity">
+
+    <GridLayout
+        android:id="@+id/mygridLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:columnCount="9"
+        android:rowCount="9"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0">
+
+<!--        <ImageButton-->
+<!--            android:id="@+id/simpleImageButton"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:src="@drawable/flower" />-->
+
+<!--        <Button-->
+<!--            android:id="@+id/button1" />-->
+
+<!--        <Button-->
+<!--            android:id="@+id/button2" />-->
+
+<!--        <Button-->
+<!--            android:id="@+id/button3" />-->
+
+<!--        <Button-->
+<!--            android:id="@+id/button4"/>-->
+
+<!--        <Button-->
+<!--            android:id="@+id/button5" />-->
+
+<!--        <Button-->
+<!--            android:id="@+id/button6" />-->
+
+<!--        <Button-->
+<!--            android:id="@+id/button7" />-->
+
+<!--        <Button-->
+<!--            android:id="@+id/button8" />-->
+
+<!--        <Button-->
+<!--            android:id="@+id/button9" />-->
+
+    </GridLayout>
+
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
