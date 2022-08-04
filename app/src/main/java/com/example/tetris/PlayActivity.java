@@ -3,6 +3,7 @@ package com.example.tetris;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -12,19 +13,24 @@ import android.widget.GridLayout;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 import com.example.tetris.data.ImageButton;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 public class PlayActivity extends AppCompatActivity {
 
-    private static final Integer WIDTH = 50;
-    private static final Integer HEIGHT = 50;
+    private static final Integer WIDTH = 100;
+    private static final Integer HEIGHT = 100;
     private static final Integer ROW_AND_COLUMN_COUNT = 9;
 
     float dX;
@@ -44,6 +50,7 @@ public class PlayActivity extends AppCompatActivity {
                 gridLayout.addView(btn);
 
                 btn.setOnTouchListener(new View.OnTouchListener() {
+                    @RequiresApi(api = Build.VERSION_CODES.N)
                     @Override
                     public boolean onTouch(View view_from, MotionEvent event) {
                         int action = event.getAction();
@@ -68,29 +75,29 @@ public class PlayActivity extends AppCompatActivity {
 
                                 if (Math.abs(distanceX) > Math.abs(distanceY)) {
                                     if ((firstX_point < finalX)) {
-                                        Log.d("Test", "Left to Right swipe performed");
-                                        Toast.makeText(PlayActivity.this, "Left to Right swipe performed ", Toast.LENGTH_SHORT).show();
+//                                        Log.d("Test", "Left to Right swipe performed");
+//                                        Toast.makeText(PlayActivity.this, "Left to Right swipe performed ", Toast.LENGTH_SHORT).show();
 
                                         ImageButton imageButton_from = (ImageButton) view_from;
                                         moveLeftOrRight(view_from, imageButton_from.getxPosition(), imageButton_from.getyPosition() + 1);
                                     } else {
-                                        Log.d("Test", "Right to Left swipe performed");
-                                        Toast.makeText(PlayActivity.this, "Right to Left swipe performed ", Toast.LENGTH_SHORT).show();
+//                                        Log.d("Test", "Right to Left swipe performed");
+//                                        Toast.makeText(PlayActivity.this, "Right to Left swipe performed ", Toast.LENGTH_SHORT).show();
 
                                         ImageButton imageButton_from = (ImageButton) view_from;
                                         moveLeftOrRight(view_from, imageButton_from.getxPosition(), imageButton_from.getyPosition() - 1);
                                     }
                                 } else {
                                     if ((firstY_point < finalY)) {
-                                        Log.d("Test", "Up to Down swipe performed");
-                                        Toast.makeText(PlayActivity.this, "Up to Down swipe performed", Toast.LENGTH_SHORT).show();
+//                                        Log.d("Test", "Up to Down swipe performed");
+//                                        Toast.makeText(PlayActivity.this, "Up to Down swipe performed", Toast.LENGTH_SHORT).show();
 
                                         ImageButton imageButton_from = (ImageButton) view_from;
                                         moveUpOrDown(view_from, imageButton_from.getxPosition() + 1, imageButton_from.getyPosition());
 
                                     } else {
-                                        Log.d("Test", "Down to Up swipe performed");
-                                        Toast.makeText(PlayActivity.this, "Down to Up swipe performed", Toast.LENGTH_SHORT).show();
+//                                        Log.d("Test", "Down to Up swipe performed");
+//                                        Toast.makeText(PlayActivity.this, "Down to Up swipe performed", Toast.LENGTH_SHORT).show();
 
                                         ImageButton imageButton_from = (ImageButton) view_from;
                                         moveUpOrDown(view_from, imageButton_from.getxPosition() - 1, imageButton_from.getyPosition());
@@ -106,6 +113,7 @@ public class PlayActivity extends AppCompatActivity {
         }
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.N)
     private void moveLeftOrRight(View view_from, Integer xPositionFrom, Integer yPositionFrom) {
         ViewParent viewParent = view_from.getParent();
         GridLayout gridLayout = (GridLayout) viewParent;
@@ -133,9 +141,13 @@ public class PlayActivity extends AppCompatActivity {
             setImageButtonYPositions(imageButton_from, imageButton_to);
 
             setViewXPositions(view_from, view_to);
+
+            List<View> foundViews = findVerticalRow(gridLayout, view_from);
+            findSimilarViews(foundViews, view_from);
         }
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.N)
     private void moveUpOrDown(View view_from, Integer xPositionFrom, Integer yPositionFrom) {
         ViewParent viewParent = view_from.getParent();
         GridLayout gridLayout = (GridLayout) viewParent;
@@ -164,17 +176,49 @@ public class PlayActivity extends AppCompatActivity {
 
             setViewYPositions(view_from, view_to);
 
-            List<View> foundViews = findHorizontalRow(gridLayout, view_from, 3);
-//            findSimilarViews(foundViews);
+            List<View> foundViews = findHorizontalRow(gridLayout, view_from);
+            findSimilarViews(foundViews, view_from);
         }
 
     }
 
-    private List<View> findHorizontalRow(GridLayout gridLayout, View view_from_moved, Integer sameOccurences) {
+    private List<View> findVerticalRow(GridLayout gridLayout, View view_from_moved) {
         int count = gridLayout.getChildCount();
 
         ImageButton imageButton_from_moved = (ImageButton) view_from_moved;
 
+        List<View> foundViews = new ArrayList<>();
+
+        for (int i = 0; i < count; i++) {
+            View view = gridLayout.getChildAt(i);
+
+            if (view instanceof ImageButton) {
+                ImageButton imageButton = (ImageButton) view;
+
+                Integer yPosition = imageButton.getyPosition();
+                Integer yPosition_from_moved = imageButton_from_moved.getyPosition();
+
+                if (yPosition.equals(yPosition_from_moved)) {
+
+                    Integer xPosition = imageButton.getxPosition();
+                    Integer xPosition_from_moved = imageButton_from_moved.getxPosition();
+
+                    if (xPosition < xPosition_from_moved + 3
+                            && xPosition > xPosition_from_moved - 3) {
+                        foundViews.add(view);
+                    }
+                }
+
+            }
+        }
+
+        return foundViews;
+    }
+
+    private List<View> findHorizontalRow(GridLayout gridLayout, View view_from_moved) {
+        int count = gridLayout.getChildCount();
+
+        ImageButton imageButton_from_moved = (ImageButton) view_from_moved;
 
         List<View> foundViews = new ArrayList<>();
 
@@ -191,16 +235,8 @@ public class PlayActivity extends AppCompatActivity {
                     Integer yPosition = imageButton.getyPosition();
                     Integer yPosition_from_moved = imageButton_from_moved.getyPosition();
 
-                    if (yPosition < yPosition_from_moved + sameOccurences
-                            && yPosition > yPosition_from_moved - sameOccurences) {
-
-                        Drawable drawable = imageButton.getDrawable();
-                        Drawable drawable_from_moved = imageButton_from_moved.getDrawable();
-
-                        if (drawable.getConstantState().equals(drawable_from_moved.getConstantState())) {
-                            view.setBackgroundColor(Color.RED);
-                        }
-                        view.setBackgroundColor(Color.RED);
+                    if (yPosition < yPosition_from_moved + 3
+                            && yPosition > yPosition_from_moved - 3) {
                         foundViews.add(view);
                     }
                 }
@@ -210,44 +246,74 @@ public class PlayActivity extends AppCompatActivity {
         return foundViews;
     }
 
-    private void findSimilarViews(List<View> foundViews) {
-        List<View> sortedList = new LinkedList<>();
+    @RequiresApi(api = Build.VERSION_CODES.N)
+    private void findSimilarViews(List<View> foundViews, View view_from) {
 
-        int pp = 0;
-        do {
+        Collections.sort(foundViews, Comparator.comparing(view -> ((ImageButton) view).getyPosition()));
 
-            for (View view : foundViews) {
-                ImageButton imgbtn = (ImageButton) view;
+        List<View> fiveList = foundViews.stream()
+                .filter(view -> ((ImageButton) view).getDrawable().getConstantState().equals(((ImageButton) view_from).getDrawable().getConstantState()))
+                .collect(Collectors.toList());
 
-                if (imgbtn.getyPosition().equals(pp)) {
-                    sortedList.add(view);
-                    pp++;
+        List<View> firstFourList = foundViews.stream().limit(4)
+                .filter(view -> ((ImageButton) view).getDrawable().getConstantState().equals(((ImageButton) view_from).getDrawable().getConstantState()))
+                .collect(Collectors.toList());
+
+        List<View> lastFourList = foundViews.stream().skip(Math.max(0, foundViews.size() - 4))
+                .filter(view -> ((ImageButton) view).getDrawable().getConstantState().equals(((ImageButton) view_from).getDrawable().getConstantState()))
+                .collect(Collectors.toList());
+
+        List<View> firstThreeList = foundViews.stream().limit(3)
+                .filter(view -> ((ImageButton) view).getDrawable().getConstantState().equals(((ImageButton) view_from).getDrawable().getConstantState()))
+                .collect(Collectors.toList());
+
+        List<View> lastThreeList = foundViews.stream().skip(Math.max(0, foundViews.size() - 3))
+                .filter(view -> ((ImageButton) view).getDrawable().getConstantState().equals(((ImageButton) view_from).getDrawable().getConstantState()))
+                .collect(Collectors.toList());
+
+        List<View> centerThreeList = foundViews.stream()
+                .skip(Math.max(0, foundViews.size() - 4))
+                .limit(3)
+                .filter(view -> ((ImageButton) view).getDrawable().getConstantState().equals(((ImageButton) view_from).getDrawable().getConstantState()))
+                .collect(Collectors.toList());
+
+        if (fiveList.size() == 5) {
+            fiveList.forEach(view -> {
+                int color = getResources().getColor(R.color.FloralWhite);
+                ((ImageButton) view).setBackgroundColor(color);
+            });
+        } else {
+            if (firstFourList.size() == 4) {
+                firstFourList.forEach(view -> {
+                    int color = getResources().getColor(R.color.LemonChiffon);
+                    ((ImageButton) view).setBackgroundColor(color);
+                });
+            } else {
+                if(lastFourList.size() == 4) {
+                    lastFourList.forEach(view -> {
+                        int color = getResources().getColor(R.color.Snow);
+                        ((ImageButton) view).setBackgroundColor(color);
+                    });
+                } else {
+                    if (centerThreeList.size() == 3) {
+                        centerThreeList.forEach(view -> {
+                            int color = getResources().getColor(R.color.Yellow);
+                            ((ImageButton) view).setBackgroundColor(color);
+                        });
+                    } else if (firstThreeList.size() == 3) {
+                        firstThreeList.forEach(view -> {
+                            int color = getResources().getColor(R.color.LightYellow);
+                            ((ImageButton) view).setBackgroundColor(color);
+                        });
+                    } else if (lastThreeList.size() == 3) {
+                        lastThreeList.forEach(view -> {
+                            int color = getResources().getColor(R.color.blackOverlay);
+                            ((ImageButton) view).setBackgroundColor(color);
+                        });
+                    }
                 }
             }
-
-
-//            for (int j = 0; j < foundViews.size(); j++) {
-//                ImageButton imgbtn = (ImageButton) foundViews.get(j);
-//                if (imgbtn.getyPosition().equals(pp)) {
-//                    sortedList.add(view);
-//                    pp++;
-//                }
-//            }
-        } while (pp < foundViews.size());
-
-
-        // find left 3
-        List<View> leftThreeList = new ArrayList<>();
-        for (int j = 0; j < 3; j++) {
-            leftThreeList.add(sortedList.get(j));
-            sortedList.get(j).setBackgroundColor(Color.RED);
         }
-
-        // find right 3
-//            List<View> rightThreeList = new ArrayList<>();
-//            for (int j = foundViews.size(); j > 2; j --) {
-//                rightThreeList.add(foundViews.get(j));
-//            }
 
     }
 

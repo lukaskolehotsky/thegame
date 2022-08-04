@@ -3,4 +3,11 @@
     <color name="colorPrimary">#6200EE</color>
     <color name="colorPrimaryDark">#3700B3</color>
     <color name="colorAccent">#03DAC5</color>
+
+    <color name="LightYellow">#00FFFF</color>
+    <color name="Yellow">#800080</color>
+    <color name="Snow">#FFFA1A</color>
+    <color name="FloralWhite">#00FF00</color>
+    <color name="LemonChiffon">#FF0000</color>
+    <color name="blackOverlay">#66000000</color>
 </resources>
