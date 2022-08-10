@@ -5,24 +5,20 @@ import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewParent;
 import android.widget.GridLayout;
 import android.widget.LinearLayout;
-import android.widget.Toast;
 
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
 
 import com.example.tetris.data.ImageButton;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
@@ -42,11 +38,13 @@ public class PlayActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_play);
 
+        DashboardService dashboardService = new DashboardService();
+
         GridLayout gridLayout = findViewById(R.id.mygridLayout);
 
         for (int xPosition = 0; xPosition < gridLayout.getColumnCount(); xPosition++) {
             for (int yPosition = 0; yPosition < gridLayout.getRowCount(); yPosition++) {
-                ImageButton btn = prepareImageButton(this, xPosition, yPosition);
+                ImageButton btn = dashboardService.prepareImageButton(this, xPosition, yPosition);
                 gridLayout.addView(btn);
 
                 btn.setOnTouchListener(new View.OnTouchListener() {
@@ -111,6 +109,64 @@ public class PlayActivity extends AppCompatActivity {
 
             }
         }
+    }
+
+    private void deleteView(View view) {
+//        ImageButton imageButton = (ImageButton) view;
+
+//        imageButton.setxPosition(null);
+//        imageButton.setyPosition(null);
+
+        view.setVisibility(View.GONE);
+    }
+
+    private List<View> findAllViewsAboveView(View view) {
+        ViewParent viewParent = view.getParent();
+        GridLayout gridLayout = (GridLayout) viewParent;
+
+        List<View> views = new ArrayList<>();
+        int count = gridLayout.getChildCount();
+
+        for (int i = 0; i < count; i++) {
+            View v = gridLayout.getChildAt(i);
+            if (((ImageButton) v).getyPosition().equals(((ImageButton) view).getyPosition())
+                    && ((ImageButton) v).getxPosition() < ((ImageButton) view).getxPosition()) {
+                views.add(v);
+                v.setBackgroundColor(Color.MAGENTA);
+            }
+        }
+
+        return views;
+    }
+    @RequiresApi(api = Build.VERSION_CODES.N)
+    private void moveListDown(List<View> views) {
+        Collections.sort(views, Comparator.comparing(view -> ((ImageButton) view).getyPosition()));
+        views.forEach(v -> {
+            Integer newXPosition = ((ImageButton) v).getxPosition() + 1;
+
+            ((ImageButton) v).setxPosition(newXPosition);
+            float oldXPosition = v.getX();
+            v.setY(v.getY()+100); // TODO inak
+        });
+
+        View firstView = views.get(1);
+        ImageButton firstImageButtonInList = (ImageButton) firstView;
+        ViewParent viewParent = firstView.getParent();
+        GridLayout gridLayout = (GridLayout) viewParent;
+        addNewImageButton(gridLayout, firstImageButtonInList);
+    }
+
+    private void addNewImageButton(GridLayout gridLayout, ImageButton firstImageButton) {
+        ImageButton btn = prepareImageButton(this, firstImageButton.getxPosition() - 1, firstImageButton.getyPosition());
+        btn.setBackgroundColor(Color.GREEN);
+
+        float x = ((View)firstImageButton.getParent()).getX();
+        float y = ((View)firstImageButton.getParent()).getY();
+
+        btn.setX(((View)firstImageButton.getParent()).getX());
+        btn.setY(((View)firstImageButton.getParent()).getY());
+
+        gridLayout.addView(btn);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.N)
@@ -297,8 +353,11 @@ public class PlayActivity extends AppCompatActivity {
                 } else {
                     if (centerThreeList.size() == 3) {
                         centerThreeList.forEach(view -> {
-                            int color = getResources().getColor(R.color.Yellow);
-                            ((ImageButton) view).setBackgroundColor(color);
+//                            int color = getResources().getColor(R.color.Yellow);
+//                            ((ImageButton) view).setBackgroundColor(color);
+                            List<View> views = findAllViewsAboveView(view);
+                            deleteView(view);
+                            moveListDown(views);
                         });
                     } else if (firstThreeList.size() == 3) {
                         firstThreeList.forEach(view -> {
